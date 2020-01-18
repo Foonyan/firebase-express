@@ -10,7 +10,6 @@ FirebaseでExpressを使用しWeb APIを実装する
     - [ローカルでの動作確認](#ローカルでの動作確認) 
 - [DBとの連携](#DBとの連携)
     - [Firebase DBの作成](#Firebase-DBの作成)
-    - [認証](#認証)
     - [APIの修正](#APIの修正)
     - [動作確認](#動作確認)
 
