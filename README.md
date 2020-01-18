@@ -113,13 +113,81 @@ $ firebase serve --only functions,hosting
 ここまででパスを変えることで異なるデータを取得するAPIを作成したが、今度はそのデータをDBから取得できるようにする。
 
 ## Firebase DBの作成
-
-## 認証？
+1. DataBase を選択し Firestoreを選択
+2. ロックモードを選択した場合
+3. Firebase SDKのインストール
+```
+cd ~/firebase-express
+npm install --save firebase-admin
+```
+4. 権限設定  
+プロジェクトのダッシュボードから歯車アイコン -> ユーザ権限をクリックする。  
+左端のカギアイコンをマウスオーバーしてサービスアカウントをクリックする。  
+サービスアカウントの右端オプションアイコンから キーを作成 をクリックする。  
+JSONでキーを作成する。
 
 ## APIの修正
+`index.js`を修正する。  
+`[SERVICE ACCOUNT JSON FILE]`の部分を先ほどダウンロードしたサービスアカウントのJSONファイル名に書き換える。
+
+```
+const functions = require('firebase-functions');
+const express = require('express');
+const cors = require('cors');
+const admin = require('firebase-admin');
+
+const app = express();
+app.use(cors());
+
+var serviceAccount = require("./[SERVICE ACCOUNT JSON FILE]");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+var db = admin.firestore();
+var docRef = db.collection('<collection_name>').doc('<doc_name>');
+
+app.get('/api/country', (request, response) => {
+  var res;
+  res = docRef.get()
+    .then(doc => {
+      if (!doc.exists) {
+        console.log('No such document!');
+      } else {
+        console.log('Document data:', doc.data());
+        response.send(doc.data());
+      }
+    })
+    .catch((err) => {
+        console.log('Error getting documents', err);
+    });
+});
+
+app.post('/api/country', (request, response) => {
+  var res;
+  console.log(request.body);
+  docRef.set(request.body);
+  response.send(res);
+});
+
+exports.app = functions.https.onRequest(app);
+```
 
 ## 動作確認
+ローカルでサーバを立ち上げ設定したパスにアクセスするとDBの内容が表示される。
+
+```
+$ firebase serve --only functions,hosting
+```
+
+ブラウザでアクセスし、データが表示されることを確認する。
+```
+localhost:5000/api/country
+```
+
 
 # 参考情報
 - [Firebaseの始め方](https://qiita.com/kohashi/items/43ea22f61ade45972881)
 - [Firebaseで動かすNode.jsアプリ入門](https://qiita.com/seya/items/225f859d775b31047000)
+- [Firebase Cloud Firestoreを使ってみる](https://qiita.com/bathtimefish/items/164d2b0cd268f209db9b)
